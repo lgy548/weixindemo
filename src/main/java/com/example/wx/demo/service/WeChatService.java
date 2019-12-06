@@ -6,4 +6,6 @@ public interface WeChatService {
     String getResponse(Map<String, String> requestMap);
 
     void menuInit();
+
+    void industryInit();
 }

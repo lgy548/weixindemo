@@ -1,6 +1,8 @@
 package com.example.wx.demo.utility;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.example.wx.demo.dto.template.ResIndustry;
 import com.example.wx.demo.dto.token.AccessToken;
 import com.example.wx.demo.dto.message.BaseMessage;
 import com.example.wx.demo.dto.message.ImageMessage;
@@ -36,8 +38,18 @@ public class WeChatUtil {
     private static final String APPID = "wx1b35981b4026fd95";
     private static final String APPSECRET = "5c4fc5f098106f1d86da6a8afff989bf";
     private static final String POST_WECHATMENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN";
+    private static final String POST_SETINDUSTRY_URL = "https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token=ACCESS_TOKEN";
+    private static final String POST_SENDTEMPLATE_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN";
+    private static final String GET_GETINDUSTRY_URL = "https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token=ACCESS_TOKEN";
     private static AccessToken at;
 
+    /**
+     * post请求
+     * @param url
+     * @param params
+     * @return
+     * @throws IOException
+     */
     private static String weChatPost(String url,String params) throws IOException {
         //创建HTTPClient对象
         CloseableHttpClient client = HttpClients.createDefault();
@@ -51,6 +63,12 @@ public class WeChatUtil {
         return result;
     }
 
+    /**
+     * get请求
+     * @param url
+     * @return
+     * @throws IOException
+     */
     private static String weChatGet(String url) throws IOException {
         //创建HTTPClient对象
         CloseableHttpClient client = HttpClients.createDefault();
@@ -62,25 +80,26 @@ public class WeChatUtil {
         return result;
     }
 
+    /**
+     * 初始化菜单
+     * @param param
+     */
     public static void menuInit(String param){
         try {
             String url = POST_WECHATMENU_URL.replace("ACCESS_TOKEN",getAccessToken());
             String result = weChatPost(url,param);
-            if (null == result){
-                System.out.println("post方法调用出错");
-            }
             JSONObject jsonObject = JSONObject.parseObject(result);
             String errcode = jsonObject.getString("errcode");
             String errmsg = jsonObject.getString("errmsg");
             if ("0".equals(errcode)){
                 System.out.println("菜单初始化成功");
             }else {
-                System.out.println("错误码："+errcode+"\n错误信息"+errmsg);
+                System.out.println("菜单初始化失败：错误码："+errcode+"\n错误信息"+errmsg);
             }
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("菜单初始化异常");
         }
-
     }
     /**
      * 验证签名
@@ -171,7 +190,10 @@ public class WeChatUtil {
     }
 
 
-
+    /**
+     * 获取token
+     * @throws Exception
+     */
     private static void getToken() throws Exception{
         String url = GET_ACCESSTOKEN_URL.replace("APPID",APPID).replace("APPSECRET",APPSECRET);
         String result = weChatGet(url);
@@ -181,6 +203,10 @@ public class WeChatUtil {
         at = new AccessToken(accessToken,expireIn);
     }
 
+    /**
+     * 对外暴露接口token
+     * @return
+     */
     public static String getAccessToken(){
         if (null == at || at.isExpired()){
             try {
@@ -191,5 +217,45 @@ public class WeChatUtil {
             }
         }
         return at.getAccessToken();
+    }
+
+
+    /**
+     * 设置行业
+     * @param param
+     * @throws IOException
+     */
+    public static void setIndustry(String param) throws IOException{
+        String url = POST_SETINDUSTRY_URL.replace("ACCESS_TOKEN",getAccessToken());
+        String result = weChatPost(url,param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        String errcode = jsonObject.getString("errcode");
+        String errmsg = jsonObject.getString("errmsg");
+        if ("0".equals(errcode)){
+            System.out.println("设置行业成功");
+        }else {
+            System.out.println("设置行业失败：错误码："+errcode+"\n错误信息"+errmsg);
+        }
+    }
+
+    public static ResIndustry getIndustry() throws IOException {
+        String url = GET_GETINDUSTRY_URL.replace("ACCESS_TOKEN",getAccessToken());
+        String result = weChatGet(url);
+        ResIndustry resIndustry = JSON.parseObject(result,ResIndustry.class);
+        return resIndustry;
+    }
+
+    public static void sendTemplateMessage(String param)throws Exception{
+        String url = POST_SENDTEMPLATE_URL.replace("ACCESS_TOKEN",getAccessToken());
+        String result = weChatPost(url,param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        String errcode = jsonObject.getString("errcode");
+        String errmsg = jsonObject.getString("errmsg");
+        String msgid = jsonObject.getString("msgid");
+        if ("0".equals(errcode)){
+            System.out.println("模板消息推送成功，msgid:"+msgid);
+        }else {
+            System.out.println("模板消息推送失败：错误码："+errcode+"\n错误信息"+errmsg);
+        }
     }
 }

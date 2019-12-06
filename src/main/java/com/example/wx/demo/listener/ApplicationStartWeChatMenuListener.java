@@ -14,5 +14,6 @@ public class ApplicationStartWeChatMenuListener implements ApplicationListener<C
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         weChatService.menuInit();
+        weChatService.industryInit();
     }
 }
