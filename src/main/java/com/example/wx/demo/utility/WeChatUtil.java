@@ -12,10 +12,13 @@ import com.example.wx.demo.dto.message.TextMessage;
 import com.example.wx.demo.dto.message.VideoMessage;
 import com.example.wx.demo.dto.message.VoiceMessage;
 import com.thoughtworks.xstream.XStream;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -23,8 +26,12 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.springframework.util.StringUtils;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -40,8 +47,35 @@ public class WeChatUtil {
     private static final String POST_WECHATMENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN";
     private static final String POST_SETINDUSTRY_URL = "https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token=ACCESS_TOKEN";
     private static final String POST_SENDTEMPLATE_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN";
+    private static final String POST_UPLOADFILE_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
     private static final String GET_GETINDUSTRY_URL = "https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token=ACCESS_TOKEN";
     private static AccessToken at;
+
+    /**
+     * 上传临时素材
+     * @param url
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    private static String weChatFilePostForm(String url,String path) throws IOException {
+        //创建HTTPClient对象
+        CloseableHttpClient client = HttpClients.createDefault();
+        //声明要请求的url，并构造HTTPPost请求
+        HttpPost post = new HttpPost(url);
+        URL pathUrl = Thread.currentThread().getContextClassLoader().getResource("static/"+path);
+        File file = new File(pathUrl.getFile());
+        FileBody fileBody = new FileBody(file);
+        HttpEntity reqEntity = MultipartEntityBuilder.create()
+                .addPart("media", fileBody)
+                .build();
+
+        post.setEntity(reqEntity);
+        //让HTTPClient去发送Post请求并得到响应
+        HttpResponse response  = client.execute(post);
+        String result = EntityUtils.toString(response.getEntity(), "UTF-8");
+        return result;
+    }
 
     /**
      * post请求
@@ -256,6 +290,26 @@ public class WeChatUtil {
             System.out.println("模板消息推送成功，msgid:"+msgid);
         }else {
             System.out.println("模板消息推送失败：错误码："+errcode+"\n错误信息"+errmsg);
+        }
+    }
+
+    public static void uploadFile(String path,String type){
+        String url = POST_UPLOADFILE_URL.replace("ACCESS_TOKEN",getAccessToken()).replace("TYPE",type);
+        try {
+            String result = weChatFilePostForm(url,path);
+            JSONObject jsonObject = JSONObject.parseObject(result);
+            String restype = jsonObject.getString("type");
+            String media_id = jsonObject.getString("media_id");
+            String created_at = jsonObject.getString("created_at");
+            if (StringUtils.isEmpty(restype)||StringUtils.isEmpty(media_id)||StringUtils.isEmpty(created_at)){
+                System.out.println(type+":"+path+"上传失败");
+            }else {
+                System.out.println(type+":"+path+"上传成功\n"
+                +"media_id:"+media_id+"\ncreated_at:"+created_at+"\ntype:"+restype);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(type+":"+path+"上传异常");
         }
     }
 }

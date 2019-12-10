@@ -9,10 +9,23 @@ import com.example.wx.demo.dto.button.ViewButton;
 import com.example.wx.demo.dto.template.ReqIndustry;
 import com.example.wx.demo.dto.template.ResIndustry;
 import com.example.wx.demo.utility.WeChatUtil;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 @SpringBootTest
 class DemoApplicationTests {
@@ -52,4 +65,8 @@ class DemoApplicationTests {
         }
     }
 
+    @Test
+    void testWeChatMultipartFilePost(){
+        WeChatUtil.uploadFile("images/1.jpg","image");
+    }
 }
