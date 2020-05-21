@@ -1,1 +1,1 @@
-# weixindemo
+# weixindemo  微信公众号对接相关示例 ，以及技术相关单元测
