@@ -9,23 +9,16 @@ import com.example.wx.demo.dto.button.ViewButton;
 import com.example.wx.demo.dto.template.ReqIndustry;
 import com.example.wx.demo.dto.template.ResIndustry;
 import com.example.wx.demo.utility.WeChatUtil;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @SpringBootTest
 class DemoApplicationTests {
@@ -69,4 +62,22 @@ class DemoApplicationTests {
     void testWeChatMultipartFilePost(){
         WeChatUtil.uploadFile("images/1.jpg","image");
     }
+
+    /**
+     *ArrayList()线程不安全测试
+     * 配合使用lambda表达式
+     * CopyOnWriteArrayList()安全 内部运用ReentrantLock-可重入锁机制（在资源竞争不是很激烈的情况下，Synchronized的性能要优于ReetrantLock，但是在资源竞争很激烈的情况下，Synchronized的性能会下降几十倍，但是ReetrantLock的性能能维持常态）
+     */
+    @Test
+    void lambdaTest(){
+        List<String> list = new CopyOnWriteArrayList<>();//企业不可用Collections.synchronizedList(new ArrayList<>());//企业不可用new Vector<>();//不安全new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            new Thread(() -> {
+                list.add(UUID.randomUUID().toString().substring(0,6));
+                System.out.println(list);
+            },String.valueOf(i)).start();
+        }
+    }
+
+
 }

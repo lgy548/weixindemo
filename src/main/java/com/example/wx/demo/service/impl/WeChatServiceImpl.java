@@ -18,11 +18,8 @@ import com.example.wx.demo.dto.template.ResumeData;
 import com.example.wx.demo.dto.template.ResumeTemplate;
 import com.example.wx.demo.service.WeChatService;
 import com.example.wx.demo.utility.WeChatUtil;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.apache.http.client.utils.DateUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.unit.DataUnit;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
